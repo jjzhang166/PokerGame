@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui svg network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,6 +13,15 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        pokergame.cpp
+        pokergame.cpp \
+    pokercard.cpp \
+    pokercardgraphicssvgitem.cpp \
+    pokerscene.cpp
 
-HEADERS  += pokergame.h
+HEADERS  += pokergame.h \
+    pokercard.h \
+    pokercardgraphicssvgitem.h \
+    pokerscene.h
+
+RESOURCES += \
+    pokerimages.qrc

@@ -2,6 +2,7 @@
 #define POKERSCENE_H
 
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 
 class PokerScene : public QGraphicsScene
 {
@@ -13,6 +14,8 @@ signals:
 
 public slots:
 
+protected:
+    void mousePressEvent ( QGraphicsSceneMouseEvent * mouseEvent );
 };
 
 #endif // POKERSCENE_H
