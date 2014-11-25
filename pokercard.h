@@ -31,6 +31,9 @@ public:
     PokerCardGraphicsSvgItem *item() const;
     void setItem(PokerCardGraphicsSvgItem *item);
 
+    void loadImage();
+    void loadImageByRenderer(QSvgRenderer *);
+
 private:
     bool isUniqueRenderer_;
     Rank rank_;

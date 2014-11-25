@@ -15,14 +15,14 @@ void PokerCardGraphicsSvgItem::setClicked(bool val)
 {
     isClicked_ = val;
 }
-bool PokerCardGraphicsSvgItem::isBack() const
+bool PokerCardGraphicsSvgItem::isBackShow() const
 {
-    return isBack_;
+    return isBackShow_;
 }
 
-void PokerCardGraphicsSvgItem::setBack(bool val)
+void PokerCardGraphicsSvgItem::setBackShow(bool val)
 {
-    isBack_ = val;
+    isBackShow_ = val;
 }
 
 

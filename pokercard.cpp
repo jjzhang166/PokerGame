@@ -51,6 +51,66 @@ void PokerCard::setStatus(const Status &status)
     status_ = status;
 }
 
+void PokerCard::loadImage()
+{
+    QString strName, strSuit;
+
+    if(suit_ == NotKnownSuit)
+    {
+        strName = QString(":/cards/p_back.svg");
+    }
+    else if(suit_ == BlueBack)
+    {
+        strName = QString(":/cards/p_back.svg");
+    }
+    else if(suit_ == RedJoker)
+    {
+        strName = QString(":/cards/red_joker.svg");
+    }
+    else if(suit_ == BlackJoker)
+    {
+        strName = QString(":/cards/black_joker.svg");
+    }
+    else
+    {
+        switch (suit_) {
+        case Spade:
+            strSuit = "spades";
+            break;
+        case Heart:
+            strSuit = "hearts";
+            break;
+        case Diamond:
+            strSuit = "diamonds";
+            break;
+        case Club:
+            strSuit = "clubs";
+            break;
+        default:
+            break;
+        }
+        strName = QString(":/cards/%1_of_%2.svg").arg(rank_).arg(strSuit);
+    }
+
+    item_ = new PokerCardGraphicsSvgItem;
+    renderer_ = new QSvgRenderer(strName);
+    item_->setSharedRenderer(renderer_);
+    isUniqueRenderer_ = true;
+    item_->setBackShow(false);
+
+
+}
+
+void PokerCard::loadImageByRenderer(QSvgRenderer *renderer)
+{
+    if(item_)
+        delete item_;
+    item_ = new PokerCardGraphicsSvgItem;
+    item_->setSharedRenderer(renderer);
+    isUniqueRenderer_ = false;
+    item_->setBackShow(true);
+
+}
 
 
 

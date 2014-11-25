@@ -8,6 +8,7 @@
 #include <vector>
 #include "pokercard.h"
 #include <QTcpSocket>
+#include <QListWidget>
 
 
 class PokerGame : public QMainWindow
@@ -17,14 +18,20 @@ class PokerGame : public QMainWindow
 public:
     PokerGame(QWidget *parent = 0);
     ~PokerGame();
+public slots:
+    void slotConnectServer();
+    void slotConnected();
+    void slotDisconnected();
+    void slotReadyRead();
 
 private:
     static PokerCard *backCard_;
 
     QGraphicsView *view_;
     PokerScene *scene_;
+    QListWidget *infoList_;
 
-    QAction *actStartGame_;
+    QAction *actConnectServer_;
     std::vector<PokerCard *> pokerVec_;
 
     QTcpSocket *tcpSocket_;
@@ -32,6 +39,7 @@ private:
 private:
     void createMenus();
     void createActions();
+    void processData(QString msg);
 };
 
 #endif // POKERGAME_H

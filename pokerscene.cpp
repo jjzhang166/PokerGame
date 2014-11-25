@@ -12,7 +12,7 @@ void PokerScene::mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent)
     QGraphicsItem *item = this->itemAt(mouseEvent->scenePos(), QTransform());
     PokerCardGraphicsSvgItem *svgitem;
     svgitem = qgraphicsitem_cast<PokerCardGraphicsSvgItem *>(item);
-    if(svgitem && svgitem->type() == PokerCardGraphicsSvgItem::Type && svgitem->isBack() == false)
+    if(svgitem && svgitem->type() > PokerCardGraphicsSvgItem::UserType && svgitem->isBackShow() == false)
     {
 
         QPointF pos = svgitem->pos();
