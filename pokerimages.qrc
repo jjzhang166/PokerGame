@@ -55,5 +55,7 @@
         <file>cards/back.svg</file>
         <file>cards/black_joker.svg</file>
         <file>cards/red_joker.svg</file>
+        <file>images/play.svg</file>
+        <file>images/pass.svg</file>
     </qresource>
 </RCC>

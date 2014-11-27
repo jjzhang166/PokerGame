@@ -25,3 +25,5 @@ HEADERS  += pokergame.h \
 
 RESOURCES += \
     pokerimages.qrc
+
+OTHER_FILES +=

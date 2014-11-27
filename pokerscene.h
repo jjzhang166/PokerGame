@@ -11,7 +11,7 @@ public:
     explicit PokerScene(QObject *parent = 0);
 
 signals:
-
+    void playCards();
 public slots:
 
 protected:

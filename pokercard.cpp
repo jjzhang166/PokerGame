@@ -1,20 +1,54 @@
 #include "pokercard.h"
+#include <QtDebug>
 
-PokerCard::PokerCard()
+
+
+PokerCard::PokerCard(int cardNum, QObject *parent):
+    QObject(parent)
 {
+    if(cardNum == -1)
+    {
+        setSuit(NotKnownSuit);
+        setRank(NotKnownRank);
+    }
+    if(cardNum == 52)
+    {
+        setSuit(BlackJoker);
+    }
+    else if(cardNum == 53)
+    {
+        setSuit(RedJoker);
+    }
+    else
+    {
+        setRank(Rank(cardNum % 13 + 1));
+        setSuit(Suit(cardNum / 13 + 1));
+    }
+    cardID_ = cardNum;
+    item_ = NULL;
+    renderer_ = NULL;
+
 }
+
+
 Rank PokerCard::rank() const
 {
     return rank_;
 }
 
+
+char PokerCard::owner() const
+{
+    return owner_;
+}
 void PokerCard::setRank(const Rank &rank)
 {
     rank_ = rank;
 }
-char PokerCard::owner() const
+
+void PokerCard::setSuit(const Suit &suit)
 {
-    return owner_;
+    suit_ = suit;
 }
 
 void PokerCard::setOwner(char owner)
@@ -26,10 +60,6 @@ Suit PokerCard::suit() const
     return suit_;
 }
 
-void PokerCard::setSuit(const Suit &suit)
-{
-    suit_ = suit;
-}
 
 
 PokerCardGraphicsSvgItem *PokerCard::item() const
@@ -92,8 +122,9 @@ void PokerCard::loadImage()
         strName = QString(":/cards/%1_of_%2.svg").arg(rank_).arg(strSuit);
     }
 
-    item_ = new PokerCardGraphicsSvgItem;
-    renderer_ = new QSvgRenderer(strName);
+    item_ = new PokerCardGraphicsSvgItem();
+    item_->setParent(this);
+    renderer_ = new QSvgRenderer(strName, this);
     item_->setSharedRenderer(renderer_);
     isUniqueRenderer_ = true;
     item_->setBackShow(false);
@@ -111,6 +142,37 @@ void PokerCard::loadImageByRenderer(QSvgRenderer *renderer)
     item_->setBackShow(true);
 
 }
+
+bool PokerCard::compareCard(const PokerCard* c1, const PokerCard* c2)
+{
+
+    if(c1->cardID() > 51 || c2->cardID() > 51)
+        return c1->cardID() > c2->cardID();
+    else
+    {
+        int t1 = c1->rank();
+        int t2 = c2->rank();
+        if(t1 == 1 || t1 == 2)
+            t1 += 13;
+        if(t2 == 1 || t2 == 2)
+            t2 += 13;
+        if(t1 == t2)
+        {
+            return c1->suit() > c2->suit();
+        }
+        else
+            return t1 > t2;
+    }
+
+
+
+}
+int PokerCard::cardID() const
+{
+    return cardID_;
+}
+
+
 
 
 

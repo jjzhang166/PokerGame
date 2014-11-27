@@ -17,7 +17,6 @@ public:
         return Type;
     }
 
-
     bool isClicked() const;
     void setClicked(bool val);
 
