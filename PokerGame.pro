@@ -41,3 +41,6 @@ RESOURCES += \
     pokerimages.qrc
 
 OTHER_FILES +=
+
+RC_FILE = \
+icon.rc
