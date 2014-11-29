@@ -57,5 +57,7 @@
         <file>cards/red_joker.svg</file>
         <file>images/play.svg</file>
         <file>images/pass.svg</file>
+        <file>images/pass2.svg</file>
+        <file>images/clock.svg</file>
     </qresource>
 </RCC>

@@ -1,7 +1,10 @@
 #include "pokerscene.h"
-#include "pokercardgraphicssvgitem.h"
+#include "pokercarditem.h"
 #include <QGraphicsItem>
 #include <QDebug>
+#include <Qt>
+
+
 PokerScene::PokerScene(QObject *parent) :
     QGraphicsScene(parent)
 {
@@ -9,34 +12,41 @@ PokerScene::PokerScene(QObject *parent) :
 
 void PokerScene::mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent)
 {
-    //qDebug() << mouseEvent->scenePos();
-    QGraphicsItem *item = this->itemAt(mouseEvent->scenePos(), QTransform());
-    qDebug() << mouseEvent->scenePos();
-    if(!item) return;
-    if(item->type() > PokerCardGraphicsSvgItem::UserType)
+    if(mouseEvent->button() == Qt::LeftButton)
     {
-        PokerCardGraphicsSvgItem *svgitem;
-        svgitem = qgraphicsitem_cast<PokerCardGraphicsSvgItem *>(item);
-
-        if(svgitem && svgitem->type() > PokerCardGraphicsSvgItem::UserType && svgitem->isBackShow() == false)
+        QGraphicsItem *item = this->itemAt(mouseEvent->scenePos(), QTransform());
+        if(!item) return;
+        if(item->type() == QGraphicsItem::UserType + 1 )
         {
+            PokerCardItem *svgitem;
+            svgitem = qgraphicsitem_cast<PokerCardItem *>(item);
+            if(svgitem->clickable() == true)
+            {
 
-            QPointF pos = svgitem->pos();
-            if(svgitem->isClicked())
-            {
-                svgitem->setPos(pos.x(), pos.y() + 20);
-                svgitem->setClicked(false);
-            }
-            else
-            {
-                svgitem->setPos(pos.x(), pos.y() - 20);
-                svgitem->setClicked(true);
+                QPointF pos = svgitem->pos();
+                if(svgitem->isClicked())
+                {
+                    svgitem->setPos(pos.x(), pos.y() + 20);
+                    svgitem->setClicked(false);
+                }
+                else
+                {
+                    svgitem->setPos(pos.x(), pos.y() - 20);
+                    svgitem->setClicked(true);
+                }
             }
         }
+
+        if(item->type() == QGraphicsSvgItem::Type)
+        {
+            if(item->data(0).toString() == "Play")
+                emit playCards();
+            if(item->data(0).toString() == "Pass")
+                emit passRound();
+        }
     }
-    if(item->type() == QGraphicsSvgItem::Type)
+    else if (mouseEvent->button() == Qt::RightButton)
     {
-        qDebug() << "SVGITEM";
         emit playCards();
     }
 }

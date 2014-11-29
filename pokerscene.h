@@ -12,6 +12,7 @@ public:
 
 signals:
     void playCards();
+    void passRound();
 public slots:
 
 protected:

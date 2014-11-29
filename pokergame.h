@@ -6,9 +6,11 @@
 #include "pokerscene.h"
 #include <QAction>
 #include <QList>
-#include "pokercard.h"
+
+#include "pokercarditem.h"
 #include <QTcpSocket>
 #include <QListWidget>
+#include "pokercardmodel.h"
 
 
 class PokerGame : public QMainWindow
@@ -25,25 +27,27 @@ public slots:
     void slotReadyRead();
 
 private:
-    static PokerCard *backCard_;
+    //static PokerCard *backCard_;
 
     QGraphicsView *view_;
     PokerScene *scene_;
     QListWidget *infoList_;
 
     QAction *actConnectServer_;
-    QList<PokerCard*> cardInMyHands;
-    QList<PokerCard*> cardInHandsTop_;
-    QList<PokerCard*> cardInHandsLeft_;
-    QList<PokerCard*> cardInHandsRight_;
-    QList<PokerCard*>* cardListArray_[4];
+    QList<PokerCardItem*> cardInHandsBottom_;
+    QList<PokerCardItem*> cardInHandsTop_;
+    QList<PokerCardItem*> cardInHandsLeft_;
+    QList<PokerCardItem*> cardInHandsRight_;
+    QList<PokerCardItem*>* cardListArray_[4];
 
-    QList<PokerCard*> cardOutOfMyHands_;
-    QList<PokerCard*> cardOutOfHandsTop_;
-    QList<PokerCard*> cardOutOfHandsLeft_;
-    QList<PokerCard*> cardOutOfHandsRight_;
+    QList<PokerCardItem*> cardOutOfHandsBottom_;
+    QList<PokerCardItem*> cardOutOfHandsTop_;
+    QList<PokerCardItem*> cardOutOfHandsLeft_;
+    QList<PokerCardItem*> cardOutOfHandsRight_;
 
-
+    QList<PokerCardItem*> lastCardList_;
+    int lastCardOwner_;
+    CardModel lastCardModel_;
 
     QTcpSocket *tcpSocket_;
     GameStatus gameStatus_;
@@ -52,6 +56,18 @@ private:
 
     QGraphicsSvgItem *playImageItem_;
     QGraphicsSvgItem *passImageItem_;
+
+    QGraphicsSvgItem *clockLeftItem_;
+    QGraphicsSvgItem *clockRightItem_;
+    QGraphicsSvgItem *clockTopItem_;
+    QGraphicsSvgItem *clockBottomItem_;
+
+
+    QGraphicsSvgItem *passLeftItem_;
+    QGraphicsSvgItem *passRightItem_;
+    QGraphicsSvgItem *passTopItem_;
+    QGraphicsSvgItem *passBottomItem_;
+
 
 private:
     void createMenus();
@@ -64,9 +80,9 @@ private:
     void arrangeTopInHandCards();
     void arrangeLeftInHandCards();
     void arrangeRightInHandCards();
-    void arrangeMyInHandCards();
+    void arrangeBottomInHandCards();
 
-    void arrangeMyOutOfHandCards(QList<PokerCard *> &newCardsOnDeck);
+    void arrangeBottomOutOfHandCards();
     void arrangeTopOutOfHandCards();
     void arrangeLeftOutOfHandCards();
     void arrangeRightOutOfHandCards();
@@ -75,11 +91,20 @@ private:
 
     void receiveCardsFromPlayers(QStringList &strlist);
 
+    void bottomPlayerPlayCards(QStringList &strlist);
     void leftPlayerPlayCards(QStringList &strlist);
     void topPlayerPlayCards(QStringList &strlist);
     void rightPlayerPlayCards(QStringList &strlist);
+
+    void clearTable();
+    void clearBottomTable();
+    void clearLeftTable();
+    void clearRightTable();
+    void clearTopTable();
+
 private slots:
     void playCards();
+    void passRound();
 };
 
 #endif // POKERGAME_H

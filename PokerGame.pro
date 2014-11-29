@@ -14,14 +14,28 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         pokergame.cpp \
-    pokercard.cpp \
-    pokercardgraphicssvgitem.cpp \
-    pokerscene.cpp
+    pokerscene.cpp \
+    pokercarditem.cpp \
+    pokercardmodel.cpp \
+    modeldan.cpp \
+    modeldui.cpp \
+    modelhong.cpp \
+    modelzha.cpp \
+    modellong.cpp \
+    modelliandui.cpp \
+    modelsanliandui.cpp
 
 HEADERS  += pokergame.h \
-    pokercard.h \
-    pokercardgraphicssvgitem.h \
-    pokerscene.h
+    pokerscene.h \
+    pokercarditem.h \
+    pokercardmodel.h \
+    modeldan.h \
+    modeldui.h \
+    modelhong.h \
+    modelzha.h \
+    modellong.h \
+    modelliandui.h \
+    modelsanliandui.h
 
 RESOURCES += \
     pokerimages.qrc
