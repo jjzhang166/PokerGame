@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     modelzha.cpp \
     modellong.cpp \
     modelliandui.cpp \
-    modelsanliandui.cpp
+    modelsanliandui.cpp \
+    settingstab.cpp
 
 HEADERS  += pokergame.h \
     pokerscene.h \
@@ -35,7 +36,8 @@ HEADERS  += pokergame.h \
     modelzha.h \
     modellong.h \
     modelliandui.h \
-    modelsanliandui.h
+    modelsanliandui.h \
+    settingstab.h
 
 RESOURCES += \
     pokerimages.qrc
@@ -44,3 +46,6 @@ OTHER_FILES +=
 
 RC_FILE = \
 icon.rc
+
+FORMS += \
+    settingstab.ui

@@ -8,6 +8,10 @@
 #include <QMenuBar>
 #include <QHostAddress>
 #include <QtAlgorithms>
+#include <QLabel>
+#include <QLineEdit>
+
+
 
 PokerGame::PokerGame(QWidget *parent)
     : QMainWindow(parent)
@@ -31,15 +35,41 @@ PokerGame::PokerGame(QWidget *parent)
 
     QHBoxLayout *layout = new QHBoxLayout;
     QVBoxLayout *rightLayout = new QVBoxLayout;
-    rightLayout->addWidget(startGameBtn);
+
+    ui_tab = new SettingsTab;
+    rightLayout->addWidget(ui_tab);
+    ui_tab->setFixedHeight(100);
+    ui_tab->getUi()->lineEditHostAddress->setText("127.0.0.1");
+    ui_tab->getUi()->lineEditPort->setText("9009");
+    ui_tab->getUi()->lineEditPassword->setEchoMode(QLineEdit::Password);
+
     infoList_ = new QListWidget;
-    infoList_->setFixedWidth(150);
-    infoList_->addItem("Test");
     rightLayout->addWidget(infoList_);
+
+    QFrame *buttonFrame = new QFrame;
+    QHBoxLayout *blayout = new QHBoxLayout;
+    QPushButton *connectBtn = new QPushButton(QString("Connect"));
+    QPushButton *disconnectBtn = new QPushButton(QString("Disconnect"));
+    blayout->addWidget(connectBtn);
+    blayout->addWidget(disconnectBtn);
+    buttonFrame->setLayout(blayout);
+    buttonFrame->setAutoFillBackground(true);
+
+    QPalette palette;
+    palette.setColor(QPalette::Background, QColor(255,255,255));
+    buttonFrame->setPalette(palette);
+
+    buttonFrame->setFrameStyle(QFrame::Box | QFrame::Sunken);
+    buttonFrame->setLineWidth(1);
+
+    rightLayout->addWidget(buttonFrame);
+    connect(connectBtn, SIGNAL(clicked()), this, SLOT(slotConnectServer()));
+    //rightLayout->addWidget(startGameBtn);
+
 
     layout->addWidget(view_);
     layout->addLayout(rightLayout);
-    //layout->addWidget(startGameBtn);
+
     layout->setMargin(0);
     layout->setSpacing(0);
 
@@ -47,7 +77,7 @@ PokerGame::PokerGame(QWidget *parent)
     setCentralWidget(cwidget);
 
     gameStatus_ = BeforeGame;
-    resize(1000, 700);
+    resize(1100, 700);
 
     connect(scene_, SIGNAL(playCards()), this, SLOT(playCards()));
     connect(scene_, SIGNAL(passRound()), this, SLOT(passRound()));
@@ -82,13 +112,14 @@ void PokerGame::slotConnectServer()
     connect(tcpSocket_, SIGNAL(connected()), this, SLOT(slotConnected()));
     connect(tcpSocket_, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
     connect(tcpSocket_, SIGNAL(readyRead()), this, SLOT(slotReadyRead()));
+    connect(tcpSocket_, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(slotSocketError(QAbstractSocket::SocketError)));
 
 
 
     QHostAddress *serverIP = new QHostAddress;
-    serverIP->setAddress("127.0.0.1");
+    serverIP->setAddress(ui_tab->getUi()->lineEditHostAddress->text());
 
-    tcpSocket_->connectToHost(*serverIP, 9009);
+    tcpSocket_->connectToHost(*serverIP, ui_tab->getUi()->lineEditPort->text().toInt());
 
 }
 
@@ -100,7 +131,7 @@ void PokerGame::slotConnected()
     gameStatus_ = ConnectedAndWait;
 
     int length = 0;
-    QString msg= tr(":Enter Chat Room");
+    QString msg= tr("Connected to the server!!! Wait for opening game!!!");
     if((length=tcpSocket_->write(msg.toLatin1(),msg.length()))!=msg.length())
     {
         return;
@@ -127,6 +158,16 @@ void PokerGame::slotReadyRead()
 
 
     }
+}
+
+void PokerGame::slotSocketError(QAbstractSocket::SocketError socketError)
+{
+    QString info("Error");
+    infoList_->addItem(info);
+    tcpSocket_->disconnectFromHost();
+    tcpSocket_->close();
+    delete tcpSocket_;
+    tcpSocket_ = NULL;
 }
 
 void PokerGame::processData(QString msg)

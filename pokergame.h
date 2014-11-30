@@ -11,7 +11,7 @@
 #include <QTcpSocket>
 #include <QListWidget>
 #include "pokercardmodel.h"
-
+#include "settingstab.h"
 
 class PokerGame : public QMainWindow
 {
@@ -25,6 +25,7 @@ public slots:
     void slotConnected();
     void slotDisconnected();
     void slotReadyRead();
+    void slotSocketError(QAbstractSocket::SocketError socketError);
 
 private:
     //static PokerCard *backCard_;
@@ -32,6 +33,8 @@ private:
     QGraphicsView *view_;
     PokerScene *scene_;
     QListWidget *infoList_;
+
+    SettingsTab *ui_tab;
 
     QAction *actConnectServer_;
     QList<PokerCardItem*> cardInHandsBottom_;
