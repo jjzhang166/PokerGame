@@ -26,6 +26,7 @@ public slots:
     void slotDisconnected();
     void slotReadyRead();
     void slotSocketError(QAbstractSocket::SocketError socketError);
+    void slotEndGame();
 
 private:
     //static PokerCard *backCard_;
@@ -37,6 +38,7 @@ private:
     SettingsTab *ui_tab;
 
     QAction *actConnectServer_;
+    QAction *actEndGame_;
     QList<PokerCardItem*> cardInHandsBottom_;
     QList<PokerCardItem*> cardInHandsTop_;
     QList<PokerCardItem*> cardInHandsLeft_;
@@ -99,12 +101,22 @@ private:
     void topPlayerPlayCards(QStringList &strlist);
     void rightPlayerPlayCards(QStringList &strlist);
 
-    void clearTable();
-    void clearBottomTable();
-    void clearLeftTable();
-    void clearRightTable();
-    void clearTopTable();
+    void clearAllItemsOnTable();
+    void clearOutOfHandCardsOnTable();
+    void clearOutOfHandCardsOnBottomTable();
+    void clearOutOfHandCardsOnLeftTable();
+    void clearOutOfHandCardsOnRightTable();
+    void clearOutOfHandCardsOnTopTable();
 
+    void clearInHandCardsOnTable();
+    void clearInHandCardsOnBottomTable();
+    void clearInHandCardsOnLeftTable();
+    void clearInHandCardsOnRightTable();
+    void clearInHandCardsOnTopTable();
+
+    void clearOtherItemsOnTable();
+
+    void clearGame();
 private slots:
     void playCards();
     void passRound();

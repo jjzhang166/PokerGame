@@ -39,11 +39,13 @@ PokerGame::PokerGame(QWidget *parent)
     ui_tab = new SettingsTab;
     rightLayout->addWidget(ui_tab);
     ui_tab->setFixedHeight(100);
+    ui_tab->setFixedWidth(180);
     ui_tab->getUi()->lineEditHostAddress->setText("127.0.0.1");
     ui_tab->getUi()->lineEditPort->setText("9009");
     ui_tab->getUi()->lineEditPassword->setEchoMode(QLineEdit::Password);
 
     infoList_ = new QListWidget;
+    infoList_->setFixedWidth(180);
     rightLayout->addWidget(infoList_);
 
     QFrame *buttonFrame = new QFrame;
@@ -61,9 +63,11 @@ PokerGame::PokerGame(QWidget *parent)
 
     buttonFrame->setFrameStyle(QFrame::Box | QFrame::Sunken);
     buttonFrame->setLineWidth(1);
+    buttonFrame->setFixedWidth(180);
 
     rightLayout->addWidget(buttonFrame);
     connect(connectBtn, SIGNAL(clicked()), this, SLOT(slotConnectServer()));
+    connect(disconnectBtn, SIGNAL(clicked()), this, SLOT(slotDisconnected()));
     //rightLayout->addWidget(startGameBtn);
 
 
@@ -99,6 +103,13 @@ PokerGame::PokerGame(QWidget *parent)
 
 PokerGame::~PokerGame()
 {
+    clearAllItemsOnTable();
+    int length = 0;
+    QString msg= tr("7\n");
+    if((length=tcpSocket_->write(msg.toLatin1(),msg.length()))!=msg.length())
+    {
+        return;
+    }
 
 
 
@@ -106,11 +117,12 @@ PokerGame::~PokerGame()
 
 void PokerGame::slotConnectServer()
 {
-    if(tcpSocket_ && tcpSocket_->isValid())
-        return;
-    tcpSocket_ = new QTcpSocket(this);
+    if(tcpSocket_ == NULL)
+        tcpSocket_ = new QTcpSocket(this);
+    else
+        tcpSocket_->close();
     connect(tcpSocket_, SIGNAL(connected()), this, SLOT(slotConnected()));
-    connect(tcpSocket_, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
+    //connect(tcpSocket_, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
     connect(tcpSocket_, SIGNAL(readyRead()), this, SLOT(slotReadyRead()));
     connect(tcpSocket_, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(slotSocketError(QAbstractSocket::SocketError)));
 
@@ -120,6 +132,7 @@ void PokerGame::slotConnectServer()
     serverIP->setAddress(ui_tab->getUi()->lineEditHostAddress->text());
 
     tcpSocket_->connectToHost(*serverIP, ui_tab->getUi()->lineEditPort->text().toInt());
+    //if(tcpSocket_->waitForConnected(2000))
 
 }
 
@@ -131,7 +144,7 @@ void PokerGame::slotConnected()
     gameStatus_ = ConnectedAndWait;
 
     int length = 0;
-    QString msg= tr("Connected to the server!!! Wait for opening game!!!");
+    QString msg= tr("Connected to the server!!! Wait for opening game!!!\n");
     if((length=tcpSocket_->write(msg.toLatin1(),msg.length()))!=msg.length())
     {
         return;
@@ -140,6 +153,24 @@ void PokerGame::slotConnected()
 
 void PokerGame::slotDisconnected()
 {
+    //qDebug() << "Disconnect~~" << endl;
+
+    //infoList_->addItem(QString("Disconnect"));
+
+    if(tcpSocket_ && tcpSocket_->isValid())
+    {
+        QString msg= tr("7\n");
+        tcpSocket_->write(msg.toLatin1(),msg.length());
+        tcpSocket_->close();
+    }
+
+    clearAllItemsOnTable();
+
+}
+void PokerGame::clearGame()
+{
+    //scene_->clear();
+    clearOutOfHandCardsOnTable();
 
 }
 
@@ -155,24 +186,53 @@ void PokerGame::slotReadyRead()
         QString msg=datagram.data();
         infoList_->addItem(msg.left(datagram.size()));
         processData(msg);
-
-
     }
 }
 
 void PokerGame::slotSocketError(QAbstractSocket::SocketError socketError)
 {
-    QString info("Error");
-    infoList_->addItem(info);
-    tcpSocket_->disconnectFromHost();
+    switch (socketError) {
+    case QAbstractSocket::RemoteHostClosedError :
+    {
+        QString info("Remote Host Closed~~");
+        infoList_->addItem(info);
+        slotEndGame();
+        break;
+    }
+    case QAbstractSocket::HostNotFoundError :
+    {
+        QString info("Host Not Found~~");
+        infoList_->addItem(info);
+        //slotEndGame();
+        break;
+    }
+    case QAbstractSocket::ConnectionRefusedError :
+    {
+        QString info("Connection Refused~~");
+        infoList_->addItem(info);
+        //slotEndGame();
+        break;
+    }
+    default:
+    {
+        QString info("Unknown Error");
+        infoList_->addItem(info);
+        slotEndGame();
+        break;
+    }
+    }
     tcpSocket_->close();
-    delete tcpSocket_;
-    tcpSocket_ = NULL;
+
+}
+
+void PokerGame::slotEndGame()
+{
+    slotDisconnected();
 }
 
 void PokerGame::processData(QString msg)
 {
-
+    //infoList_->addItem(msg);
     QStringList strlist = msg.split(",");
     if(strlist[0].toInt() == 1)
     {
@@ -194,7 +254,11 @@ void PokerGame::processData(QString msg)
     }
     if(strlist[0].toInt() == 9)
     {
-        clearTable();
+        clearOutOfHandCardsOnTable();
+    }
+    if(strlist[0].toInt() == 7)
+    {
+        slotDisconnected();
     }
 
 
@@ -209,7 +273,7 @@ void PokerGame::receiveCardsFromPlayers(QStringList &strlist)
     }
     else
     {
-        infoList_->addItem(QString("receive data"));
+        //infoList_->addItem(QString("receive data"));
         int num = (playerId_ + 4 - strlist[1].toInt()) % 4;
 
         if(num == 3)
@@ -249,7 +313,7 @@ void PokerGame::bottomPlayerPlayCards(QStringList &strlist)
 }
 void PokerGame::leftPlayerPlayCards(QStringList &strlist)
 {
-    infoList_->addItem(QString("leftPlayerPlayCards"));
+
     int cardNum = strlist[2].toInt();
 
     for(int i = 0; i < cardNum; i++)
@@ -263,7 +327,7 @@ void PokerGame::leftPlayerPlayCards(QStringList &strlist)
     }
     arrangeLeftInHandCards();
 
-    clearLeftTable();
+    clearOutOfHandCardsOnLeftTable();
 
 
     for(int i = 0; i < cardNum; i++)
@@ -303,7 +367,7 @@ void PokerGame::topPlayerPlayCards(QStringList &strlist)
     }
     arrangeLeftInHandCards();
 
-    clearTopTable();
+    clearOutOfHandCardsOnTopTable();
 
 
     for(int i = 0; i < cardNum; i++)
@@ -341,7 +405,7 @@ void PokerGame::rightPlayerPlayCards(QStringList &strlist)
     }
     arrangeLeftInHandCards();
 
-    clearRightTable();
+    clearOutOfHandCardsOnRightTable();
 
 
     for(int i = 0; i < cardNum; i++)
@@ -367,16 +431,23 @@ void PokerGame::rightPlayerPlayCards(QStringList &strlist)
     arrangeRightOutOfHandCards();
 }
 
-void PokerGame::clearTable()
+void PokerGame::clearAllItemsOnTable()
 {
-    clearTopTable();
-    clearLeftTable();
-    clearRightTable();
-    clearBottomTable();
+    clearInHandCardsOnTable();
+    clearOutOfHandCardsOnTable();
+    clearOtherItemsOnTable();
+}
+
+void PokerGame::clearOutOfHandCardsOnTable()
+{
+    clearOutOfHandCardsOnTopTable();
+    clearOutOfHandCardsOnLeftTable();
+    clearOutOfHandCardsOnRightTable();
+    clearOutOfHandCardsOnBottomTable();
 
 }
 
-void PokerGame::clearBottomTable()
+void PokerGame::clearOutOfHandCardsOnBottomTable()
 {
     for(int i = 0; i < cardOutOfHandsBottom_.length(); i++)
     {
@@ -387,7 +458,7 @@ void PokerGame::clearBottomTable()
     passBottomItem_->hide();
 }
 
-void PokerGame::clearLeftTable()
+void PokerGame::clearOutOfHandCardsOnLeftTable()
 {
     for(int i = 0; i < cardOutOfHandsLeft_.length(); i++)
     {
@@ -398,7 +469,7 @@ void PokerGame::clearLeftTable()
     passLeftItem_->hide();
 }
 
-void PokerGame::clearRightTable()
+void PokerGame::clearOutOfHandCardsOnRightTable()
 {
     for(int i = 0; i < cardOutOfHandsRight_.length(); i++)
     {
@@ -409,7 +480,7 @@ void PokerGame::clearRightTable()
     passRightItem_->hide();
 }
 
-void PokerGame::clearTopTable()
+void PokerGame::clearOutOfHandCardsOnTopTable()
 {
     for(int i = 0; i < cardOutOfHandsTop_.length(); i++)
     {
@@ -418,6 +489,65 @@ void PokerGame::clearTopTable()
     }
     cardOutOfHandsTop_.clear();
     passTopItem_->hide();
+}
+
+void PokerGame::clearInHandCardsOnTable()
+{
+    clearInHandCardsOnBottomTable();
+    clearInHandCardsOnLeftTable();
+    clearInHandCardsOnRightTable();
+    clearInHandCardsOnTopTable();
+}
+
+void PokerGame::clearInHandCardsOnBottomTable()
+{
+    for(int i = 0; i < cardInHandsBottom_.length(); i++)
+    {
+        scene_->removeItem(cardInHandsBottom_.at(i));
+        delete cardInHandsBottom_.at(i);
+    }
+    cardInHandsBottom_.clear();
+    //passBottomItem_->hide();
+}
+
+void PokerGame::clearInHandCardsOnLeftTable()
+{
+    for(int i = 0; i < cardInHandsLeft_.length(); i++)
+    {
+        scene_->removeItem(cardInHandsLeft_.at(i));
+        delete cardInHandsLeft_.at(i);
+    }
+    cardInHandsLeft_.clear();
+}
+
+void PokerGame::clearInHandCardsOnRightTable()
+{
+    for(int i = 0; i < cardInHandsRight_.length(); i++)
+    {
+        scene_->removeItem(cardInHandsRight_.at(i));
+        delete cardInHandsRight_.at(i);
+    }
+    cardInHandsRight_.clear();
+}
+
+void PokerGame::clearInHandCardsOnTopTable()
+{
+    for(int i = 0; i < cardInHandsTop_.length(); i++)
+    {
+        scene_->removeItem(cardInHandsTop_.at(i));
+        delete cardInHandsTop_.at(i);
+    }
+    cardInHandsTop_.clear();
+}
+
+void PokerGame::clearOtherItemsOnTable()
+{
+    playImageItem_->hide();
+    passImageItem_->hide();
+    clockLeftItem_->hide();
+    clockBottomItem_->hide();
+    clockTopItem_->hide();
+    clockRightItem_->hide();
 }
 
 void PokerGame::receiveInitialCards(QStringList &strlist)
@@ -460,7 +590,7 @@ void PokerGame::doSomething()
 
         if(lastCardOwner_ == int(gameStatus_))
         {
-            QString info = QString("9, %1").arg(playerId_);
+            QString info = QString("9, %1\n").arg(playerId_);
             int length = 0;
             if((length=tcpSocket_->write(info.toLatin1(),info.length()))!=info.length())
             {
@@ -468,7 +598,7 @@ void PokerGame::doSomething()
             }
         }
         else
-            clearBottomTable();
+            clearOutOfHandCardsOnBottomTable();
     }
     else
     {
@@ -483,7 +613,7 @@ void PokerGame::doSomething()
             clockRightItem_->hide();
             clockTopItem_->hide();
             clockBottomItem_->hide();
-            clearLeftTable();
+            clearOutOfHandCardsOnLeftTable();
         }
         if(num == 2)
         {
@@ -491,7 +621,7 @@ void PokerGame::doSomething()
             clockRightItem_->hide();
             clockTopItem_->show();
             clockBottomItem_->hide();
-            clearTopTable();
+            clearOutOfHandCardsOnTopTable();
         }
         if(num == 1)
         {
@@ -499,7 +629,7 @@ void PokerGame::doSomething()
             clockRightItem_->show();
             clockTopItem_->hide();
             clockBottomItem_->hide();
-            clearRightTable();
+            clearOutOfHandCardsOnRightTable();
         }
     }
 
@@ -546,7 +676,7 @@ void PokerGame::playCards()
             info.append(QString(",%1").arg(list.at(i)->cardID()));
         }
         int length = 0;
-
+        info.append("\n");
         if((length=tcpSocket_->write(info.toLatin1(),info.length()))!=info.length())
         {
             return;
@@ -566,7 +696,7 @@ void PokerGame::passRound()
         }
         arrangeBottomInHandCards();
 
-        QString info = QString("3,%1,0").arg(playerId_);
+        QString info = QString("3,%1,0\n").arg(playerId_);
 
         int length = 0;
 
@@ -781,7 +911,9 @@ void PokerGame::arrangeRightOutOfHandCards()
 void PokerGame::createActions()
 {
     actConnectServer_ = new QAction("Connect Server", this);
+    actEndGame_ = new QAction("Clear Table", this);
     connect(actConnectServer_, SIGNAL(triggered()), this, SLOT(slotConnectServer()));
+    connect(actEndGame_, SIGNAL(triggered()), this, SLOT(slotEndGame()));
 
 }
 
@@ -895,4 +1027,5 @@ void PokerGame::createMenus()
 {
     QMenu *fileMenu = menuBar()->addMenu("Operation");
     fileMenu->addAction(actConnectServer_);
+    fileMenu->addAction(actEndGame_);
 }
